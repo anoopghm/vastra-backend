@@ -1,8 +1,11 @@
 package com.backend.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -13,20 +16,23 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.OneToMany;
 
 @Entity
-class Product{
-   @Id
-   @GeneratedValue(strategy=GenerationType.AUTO)
-   Long productId;
-   String productCategory;
-   String productGender;
-   String productFabric;
-   String productFit;
-   String productManufacturer;
+public class Product {
 
-   @ElementCollection
-   @CollectionTable(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long productId;
+
+    private String productCategory;
+    private String productGender;
+    private String productFabric;
+    private String productFit;
+    private String productManufacturer;
+
+    @ElementCollection
+    @CollectionTable(
         name = "product_size_quantity",
         joinColumns = @JoinColumn(name = "product_id")
     )
@@ -37,6 +43,7 @@ class Product{
     @ManyToOne
     @JoinColumn(name = "seller_id")
     private Seller seller;
-    
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rating> ratings = new ArrayList<>();
 }

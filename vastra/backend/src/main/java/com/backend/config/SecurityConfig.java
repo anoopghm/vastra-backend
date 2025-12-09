@@ -20,7 +20,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/error", "/webjars/**", "/css/**", "/js/**").permitAll()
                 .anyRequest().authenticated()
                 )
-                // ✅ Form login (manual username/password)
+                
                 .formLogin(form -> form
                 .loginPage("/login") // your custom login.html
                 .defaultSuccessUrl("/home", true) // redirect after success

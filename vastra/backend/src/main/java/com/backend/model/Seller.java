@@ -13,7 +13,7 @@ import jakarta.persistence.OneToMany;
 @Entity
 class Seller{
    @Id
-   @GeneratedValue(strategy=GenerationType.AUTO)
+   @GeneratedValue(strategy=GenerationType.IDENTITY)
    private Long sellerId;
    private String ownerName;
    private String panNumber, BrandName;
@@ -22,7 +22,4 @@ class Seller{
    @OneToMany(mappedBy="seller" ,cascade = CascadeType.ALL, orphanRemoval = true )
    private List<Product>products = new ArrayList<>();
    
-   
-
-
 }

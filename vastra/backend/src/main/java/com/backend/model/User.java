@@ -9,10 +9,10 @@ import jakarta.persistence.Id;
 @Entity
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long userId;
     
-    String email, password, phoneNumber;
+    String email, password;
 
     public String getEmail() {
         return email;
@@ -29,15 +29,6 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
     public Long getUserId() {
         return userId;
     }
