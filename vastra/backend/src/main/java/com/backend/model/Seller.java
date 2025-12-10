@@ -5,21 +5,56 @@ import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 
 @Entity
-class Seller{
-   @Id
-   @GeneratedValue(strategy=GenerationType.IDENTITY)
-   private Long sellerId;
-   private String ownerName;
-   private String panNumber, BrandName;
-   private int brandRating;
+public class Seller extends Account {
 
-   @OneToMany(mappedBy="seller" ,cascade = CascadeType.ALL, orphanRemoval = true )
-   private List<Product>products = new ArrayList<>();
-   
+    private String ownerName;
+    private String panNumber;
+    private String brandName;
+    private int brandRating;
+
+    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Product> products = new ArrayList<>();
+
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    public String getPanNumber() {
+        return panNumber;
+    }
+
+    public void setPanNumber(String panNumber) {
+        this.panNumber = panNumber;
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    public int getBrandRating() {
+        return brandRating;
+    }
+
+    public void setBrandRating(int brandRating) {
+        this.brandRating = brandRating;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
+    }
 }

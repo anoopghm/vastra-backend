@@ -17,8 +17,7 @@ class Order{
    @OneToOne(cascade=CascadeType.ALL)
    @JoinColumn(name = "payment_id")
    private PaymentDetails paymentDetails;
-   
-   
-
+   private String orderStatus;
+   private 
 
 }

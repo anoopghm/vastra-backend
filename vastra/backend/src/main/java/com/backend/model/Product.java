@@ -41,7 +41,7 @@ public class Product {
     private Map<String, Integer> sizeToQuantity = new HashMap<>();
 
     @ManyToOne
-    @JoinColumn(name = "seller_id")
+    @JoinColumn(name = "account_id")
     private Seller seller;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
