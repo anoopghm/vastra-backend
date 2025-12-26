@@ -30,6 +30,7 @@ public class Product {
     private String productFabric;
     private String productFit;
     private String productManufacturer;
+    private Double price;
 
     @ElementCollection
     @CollectionTable(
@@ -46,4 +47,84 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rating> ratings = new ArrayList<>();
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public String getProductCategory() {
+        return productCategory;
+    }
+
+    public void setProductCategory(String productCategory) {
+        this.productCategory = productCategory;
+    }
+
+    public String getProductGender() {
+        return productGender;
+    }
+
+    public void setProductGender(String productGender) {
+        this.productGender = productGender;
+    }
+
+    public String getProductFabric() {
+        return productFabric;
+    }
+
+    public void setProductFabric(String productFabric) {
+        this.productFabric = productFabric;
+    }
+
+    public String getProductFit() {
+        return productFit;
+    }
+
+    public void setProductFit(String productFit) {
+        this.productFit = productFit;
+    }
+
+    public String getProductManufacturer() {
+        return productManufacturer;
+    }
+
+    public void setProductManufacturer(String productManufacturer) {
+        this.productManufacturer = productManufacturer;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public Map<String, Integer> getSizeToQuantity() {
+        return sizeToQuantity;
+    }
+
+    public void setSizeToQuantity(Map<String, Integer> sizeToQuantity) {
+        this.sizeToQuantity = sizeToQuantity;
+    }
+
+    public List<Rating> getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(List<Rating> ratings) {
+        this.ratings = ratings;
+    }
+
+    public Seller getSeller() {
+        return seller;
+    }
+
+    public void setSeller(Seller seller) {
+        this.seller = seller;
+    }
 }

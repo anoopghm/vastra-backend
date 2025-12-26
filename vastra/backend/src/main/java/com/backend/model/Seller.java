@@ -13,7 +13,7 @@ public class Seller extends Account {
     private String ownerName;
     private String panNumber;
     private String brandName;
-    private int brandRating;
+    private float brandRating;
 
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products = new ArrayList<>();
@@ -42,11 +42,11 @@ public class Seller extends Account {
         this.brandName = brandName;
     }
 
-    public int getBrandRating() {
+    public float getBrandRating() {
         return brandRating;
     }
 
-    public void setBrandRating(int brandRating) {
+    public void setBrandRating(float brandRating) {
         this.brandRating = brandRating;
     }
 

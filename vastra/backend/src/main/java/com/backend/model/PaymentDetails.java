@@ -18,6 +18,25 @@ class PaymentDetails{
    private Order order;
    private Date date;
    boolean paymentDone = false;
-   
-
+   public Long getPaymentId() {
+    return paymentId;
+   }
+   public Order getOrder() {
+    return order;
+   }
+   public void setOrder(Order order) {
+    this.order = order;
+   }
+   public Date getDate() {
+    return date;
+   }
+   public void setDate(Date date) {
+    this.date = date;
+   }
+   public boolean isPaymentDone() {
+    return paymentDone;
+   }
+   public void setPaymentDone(boolean paymentDone) {
+    this.paymentDone = paymentDone;
+   }
 }
