@@ -1,6 +1,9 @@
 package com.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,23 +17,16 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long cartItemId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
+    @JsonBackReference
     private Cart cart;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
 
     private int quantity;
-
-	public Long getCartItemId() {
-		return cartItemId;
-	}
-
-	public void setCartItemId(Long cartItemId) {
-		this.cartItemId = cartItemId;
-	}
 
 	public Cart getCart() {
 		return cart;
@@ -55,6 +51,8 @@ public class CartItem {
 	public void setQuantity(int quantity) {
 		this.quantity = quantity;
 	}
-    
-}
 
+	public Long getCartItemId() {
+		return cartItemId;
+	}
+}

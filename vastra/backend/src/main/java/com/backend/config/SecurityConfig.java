@@ -2,63 +2,44 @@ package com.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.backend.security.JwtFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
+
+    private final JwtFilter jwtFilter;
+
+    public SecurityConfig(JwtFilter jwtFilter) {
+        this.jwtFilter = jwtFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // authorize URLs
-                .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/error", "/webjars/**", "/css/**", "/js/**").permitAll()
-                .anyRequest().authenticated()
-                )
-                
-                .formLogin(form -> form
-                .loginPage("/login") // your custom login.html
-                .defaultSuccessUrl("/home", true) // redirect after success
-                .permitAll()
-                )
-                // ✅ Google OAuth2 login
-                .oauth2Login(oauth -> oauth
-                .loginPage("/login") // same page can show both options
-                .defaultSuccessUrl("/home", true)
-                )
-                // ✅ Logout (works for both)
-                .logout(logout -> logout
-                .logoutSuccessUrl("/login?logout")
-                .invalidateHttpSession(true)
-                .clearAuthentication(true)
-                .deleteCookies("JSESSIONID")
-                )
-                // ✅ Disable CSRF for testing with APIs (optional)
-                .csrf(csrf -> csrf.disable());
 
-        return http.build();
+        return http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm ->
+                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
-    // ✅ In-memory user store for manual login testing
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user1 = User.withDefaultPasswordEncoder()
-                .username("anup")
-                .password("12345")
-                .roles("USER")
-                .build();
-
-        UserDetails admin = User.withDefaultPasswordEncoder()
-                .username("admin")
-                .password("admin")
-                .roles("ADMIN")
-                .build();
-
-        return new InMemoryUserDetailsManager(user1, admin);
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

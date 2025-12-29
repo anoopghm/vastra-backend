@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 @Entity
@@ -23,7 +24,8 @@ class Order{
     @JoinColumn(name = "order_address_id", nullable = false)
     private OrderAddress deliveryAddress;
    private String orderStatus;
-   private List<CartItem>orders;
+   @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems;
    
    public PaymentDetails getPaymentDetails() {
       return paymentDetails;
@@ -43,14 +45,15 @@ class Order{
    public void setOrderStatus(String orderStatus) {
       this.orderStatus = orderStatus;
    }
-   public List<CartItem> getOrders() {
-      return orders;
-   }
-   public void setOrders(List<CartItem> orders) {
-      this.orders = orders;
-   }
    public Long getOrderId() {
       return orderId;
    }
+   public List<OrderItem> getOrderItems() {
+      return orderItems;
+   }
+   public void setOrderItems(List<OrderItem> orderItems) {
+      this.orderItems = orderItems;
+   }
+
 
 }

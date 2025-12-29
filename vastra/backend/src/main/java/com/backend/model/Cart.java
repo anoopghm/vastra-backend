@@ -3,8 +3,11 @@ package com.backend.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,30 +22,27 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long cartId;
 
-    @OneToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<CartItem> cartItems = new ArrayList<>();
 
-    public Long getCartId() {
-        return cartId;
+    public void addItem(CartItem item) {
+        cartItems.add(item);
+        item.setCart(this);
     }
 
-    public Account getAccount() {
-        return account;
+    public void removeItem(CartItem item) {
+        cartItems.remove(item);
+        item.setCart(null);
     }
 
-    public void setAccount(Account account) {
-        this.account = account;
-    }
-
-    public List<CartItem> getCartItems() {
-        return cartItems;
-    }
-
-    public void setCartItems(List<CartItem> cartItems) {
-        this.cartItems = cartItems;
-    }
+    // getters & setters
+    public Long getCartId() { return cartId; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    public List<CartItem> getCartItems() { return cartItems; }
 }
