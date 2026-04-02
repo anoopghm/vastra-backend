@@ -1,11 +1,10 @@
 package com.backend.security;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,6 +14,7 @@ import com.backend.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -22,55 +22,65 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                   HttpServletResponse response,
+                                   FilterChain chain)
+            throws ServletException, IOException {
 
-        if (request.getRequestURI().startsWith("/auth")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        String path = request.getServletPath();
 
-        String authHeader = request.getHeader("Authorization");
+System.out.println("PATH: " + path);
 
-        if (authHeader != null
-                && authHeader.startsWith("Bearer ")
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
+// ✅ STRICT skip BEFORE anything
+if (path.equals("/auth/login") || path.equals("/auth/register")) {
+    chain.doFilter(request, response);
+    return;
+}
 
-            try {
-                String token = authHeader.substring(7);
-                Claims claims = JwtUtil.validateToken(token);
+        String token = null;
 
-                if (!"access".equals(claims.get("type"))) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
+        // ✅ 2. Extract token from cookies
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
                 }
-
-                Long userId = Long.parseLong(claims.getSubject());
-                String role = claims.get("role", String.class);
-
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                userId,
-                                null,
-                                List.of(new SimpleGrantedAuthority(role))
-                        );
-
-                auth.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-
-            } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
             }
         }
 
-        filterChain.doFilter(request, response);
+        // ✅ 3. Validate token and set authentication
+        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            try {
+                Claims claims = JwtUtil.validateToken(token);
+
+                String email = claims.get("email", String.class);
+                String role = claims.get("role", String.class);
+
+                var userDetails = User.withUsername(email)
+                        .password("") // password not needed here
+                        .roles(role)
+                        .build();
+
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                // ✅ Set authentication in context
+                SecurityContextHolder.getContext().setAuthentication(auth);
+
+            } catch (Exception e) {
+               System.out.println("Invalid JWT → ignoring");
+              SecurityContextHolder.clearContext();
+            }
+        }
+
+        // ✅ 4. Continue request
+        chain.doFilter(request, response);
     }
 }

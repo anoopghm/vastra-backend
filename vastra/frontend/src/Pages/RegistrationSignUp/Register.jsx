@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Placeholder from "../../components/Placeholder";
+ import api from "../../api/axios";
 
 export default function Register({ onBack }) {
   const [form, setForm] = useState({
@@ -14,29 +15,49 @@ export default function Register({ onBack }) {
     setForm({ ...form, [field]: value });
   };
 
-  const handleSubmit = () => {
-    let newErrors = {};
+const handleSubmit = async () => {
+  let newErrors = {};
 
-    if (!form.name.trim()) {
-      newErrors.name = "Name cannot be blank";
-    }
+  //  Validation
+  if (!form.name.trim()) {
+    newErrors.name = "Name cannot be blank";
+  }
 
-    if (!form.email.trim()) {
-      newErrors.email = "Email cannot be blank";
-    }
+  if (!form.email.trim()) {
+    newErrors.email = "Email cannot be blank";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    newErrors.email = "Enter a valid email address";
+  }
 
-    if (!form.password.trim()) {
-      newErrors.password = "Password cannot be blank";
-    }
+  if (!form.password.trim()) {
+    newErrors.password = "Password cannot be blank";
+  } else if (form.password.length < 8) {
+    newErrors.password = "Must be more than 8 characters";
+  }
 
-    setErrors(newErrors);
+  setErrors(newErrors);
 
-    if (Object.keys(newErrors).length > 0) return;
+  // stop if errors
+  if (Object.keys(newErrors).length > 0) return;
 
-    // 🔥 call register API here
-    
-    console.log("Valid form:", form);
-  };
+  try {
+    await api.post("/auth/register", form);
+
+    alert("Registered successfully");
+
+    // reset form
+    setForm({
+      name: "",
+      email: "",
+      password: ""
+    });
+
+    onBack(); // go to login
+  } catch (err) {
+    console.error(err);
+    setErrors({ api: "Registration failed" });
+  }
+};
 
   return (
     <div>

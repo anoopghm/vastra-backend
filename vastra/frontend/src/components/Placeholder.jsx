@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-export default function Placeholder({ title, type = "text" }) {
+export default function Placeholder({
+  title,
+  type = "text",
+  value,
+  onChange
+}) {
   const [active, setActive] = useState(false);
 
   return (
@@ -32,6 +37,8 @@ export default function Placeholder({ title, type = "text" }) {
         type={type}
         className="w-full bg-transparent outline-none text-black"
         placeholder={!active ? title : ""}
+        value={value}
+        onChange={onChange}
         onFocus={() => setActive(true)}
         onBlur={(e) => setActive(e.target.value.length > 0)}
       />

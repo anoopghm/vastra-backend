@@ -1,11 +1,11 @@
 package com.backend.controller;
 
-import java.util.Map;
-
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,7 +14,7 @@ import com.backend.model.Account;
 import com.backend.repository.AccountRepository;
 import com.backend.util.JwtUtil;
 
-import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/auth")
@@ -29,48 +29,35 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody LoginRequest req) {
-
-        Account user = accountRepo.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (!encoder.matches(req.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+    public ResponseEntity<?> login(@RequestBody LoginRequest req, HttpServletResponse response) {
+        var optional = accountRepo.findByEmail(req.getEmail());
+        if (optional.isEmpty() || !encoder.matches(req.getPassword(), optional.get().getPassword())) {
+            return ResponseEntity.status(401).body("Unauthorized");
         }
-
-        String access = JwtUtil.generateAccessToken(
-                user.getId(),
-                user.getEmail(),
-                user.getRole().name()
-        );
-
+        Account user = optional.get();
+        String access = JwtUtil.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
         String refresh = JwtUtil.generateRefreshToken(user.getId());
 
-        return Map.of(
-                "accessToken", access,
-                "refreshToken", refresh
-        );
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", access)
+                .httpOnly(true).secure(false).sameSite("Lax").path("/").maxAge(15 * 60).build();
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refresh)
+                .httpOnly(true).secure(false).sameSite("Lax").path("/auth/refresh").maxAge(7 * 24 * 60 * 60).build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/refresh")
-    public Map<String, String> refresh(@RequestHeader("Authorization") String header) {
 
-        String token = header.substring(7);
-        Claims claims = JwtUtil.validateToken(token);
-
-        if (!"refresh".equals(claims.get("type"))) {
-            throw new RuntimeException("Invalid refresh token");
-        }
-
-        Long userId = Long.parseLong(claims.getSubject());
-        Account user = accountRepo.findById(userId).orElseThrow();
-
-        String newAccess = JwtUtil.generateAccessToken(
-                user.getId(),
-                user.getEmail(),
-                user.getRole().name()
-        );
-
-        return Map.of("accessToken", newAccess);
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true).secure(false).sameSite("Lax").path("/").maxAge(0).build();
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true).secure(false).sameSite("Lax").path("/auth/refresh").maxAge(0).build();
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        return ResponseEntity.ok().build();
     }
 }

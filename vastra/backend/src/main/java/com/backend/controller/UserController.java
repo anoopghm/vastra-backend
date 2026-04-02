@@ -1,5 +1,7 @@
 package com.backend.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,25 +26,44 @@ public class UserController {
         this.userRepo = userRepo;
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication authentication) {
+ @GetMapping("/me")
+public ResponseEntity<?> me(Authentication authentication) {
 
-        if (authentication == null) {
-            return ResponseEntity.status(401).build();
-        }
+    if (authentication == null || !authentication.isAuthenticated()) {
+        return ResponseEntity.status(401).build();
+    }
+    var userDetails = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+    String email = userDetails.getUsername();
 
-        return ResponseEntity.ok(authentication.getPrincipal());
+    User user = userRepo.findByEmail(email).orElse(null);
+    return ResponseEntity.ok(
+        Map.of(
+            "id", user.getId(),
+            "email", user.getEmail(),
+            "name", user.getName(),
+            "role", user.getRole()
+        )
+    );
+}
+
+   @PostMapping("/auth/register")
+public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+
+    if (userRepo.existsByEmail(req.getEmail())) {
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of("error", "Email already registered"));
     }
 
-    @PostMapping("/auth/register")
-    public String register(@RequestBody RegisterRequest req) {
+    User user = new User();
+    user.setEmail(req.getEmail());
+    user.setPassword(encoder.encode(req.getPassword()));
+    user.setRole(Role.USER);
+    user.setName(req.getName());
 
-        User user = new User();
-        user.setEmail(req.getEmail());
-        user.setPassword(encoder.encode(req.getPassword())); 
-        user.setRole(Role.USER);
-        user.setName(req.getName());
-        userRepo.save(user);
-        return "User registered";
-    }
+    userRepo.save(user);
+
+    return ResponseEntity.status(201).build();
+}
+
 }
